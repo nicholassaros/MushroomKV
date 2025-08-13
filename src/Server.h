@@ -16,13 +16,17 @@ public:
 private:
     int m_Port;
     int m_ServerFd;
+    int m_EpollFd;
     sockaddr_in m_ServerAddress;
+
        
     void SocketCreate();
 
     void SocketBind();
 
     void SocketListen();
+
+    void CreateRegisterEpoll();
 };
 
 #endif
