@@ -1,5 +1,6 @@
 #include "SessionManager.h"
 #include "Server.h"
+#include "RequestParser.h"
 
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -105,7 +106,7 @@ void Server::Start() {
 
                     } else if (bytes_read == 0) {
                         // Client disconnected
-                        spdlog::info("Client disconnected "); 
+                        spdlog::info("Client disconnected"); 
                         close(client_fd);
                         break;
                     } else {
@@ -114,12 +115,18 @@ void Server::Start() {
                             break;
                         } else {
                             // Read error
-                            perror("read");
+                            spdlog::error("Error reading from client socket"); 
                             close(client_fd);
                             break;
                         }
                     }
-                } 
+                }
+
+
+                if (!data.empty()) {
+                    // parse data and for get put
+                    
+                }
             }
         }
     }
