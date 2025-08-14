@@ -15,6 +15,7 @@
 #include <sys/epoll.h>
 
 #define MAX_EVENTS 10
+#define BUFFER_SIZE 1024
 
 int main(){
     spdlog::info("Welcome to spdlog!");
@@ -47,18 +48,18 @@ void Server::Start() {
     
     CreateRegisterEpoll();
 
-    epoll_event events[MAX_EVENTS];
-
+    epoll_event eventsList[MAX_EVENTS];
+    
     while(true) {
 
-        int ready_fds = epoll_wait(m_EpollFd, events, MAX_EVENTS, -1);
+        int ready_fds = epoll_wait(m_EpollFd, eventsList, MAX_EVENTS, -1);
         if (ready_fds == -1) {
-            perror("epoll_wait");
+            spdlog::error("Error getting list of list of fd's with ready status.");
             continue;
         }
 
         for (int i = 0; i < ready_fds; ++i) {
-            if (events[i].data.fd == m_ServerFd) {
+            if (eventsList[i].data.fd == m_ServerFd) {
                 
                 while (true) {
                     sockaddr_in client_addr{};
@@ -70,7 +71,7 @@ void Server::Start() {
                         if (errno == EAGAIN || errno == EWOULDBLOCK) { // break when no more connections
                             break;
                         } else {
-                            perror("accept");
+                            spdlog::error("Error when accepting new client");
                             break;
                         }
                     }
@@ -84,16 +85,41 @@ void Server::Start() {
                     client_event.events = EPOLLIN | EPOLLET; // Edge-triggered mode
 
                     if (epoll_ctl(m_EpollFd, EPOLL_CTL_ADD, client_fd, &client_event) == -1) {
-                        perror("epoll_ctl: client_fd");
+                        spdlog::error("Error registering client with epoll");
                         close(client_fd);
                     } else {
-                        std::cout << "New connection: FD " << client_fd << "\n";
+                        // register client with session manager
+                        spdlog::info("Successfully registered new client session");
                     }
                 }
 
             } else {
-                // Client requesting 
+                char buffer[BUFFER_SIZE];
+                std::string data; 
 
+                while (true) {
+                    int bytes_read = read(client_fd, buffer, sizeof(buffer));
+                    if (bytes_read > 0) {
+
+                        data.append(buffer, bytes_read);
+
+                    } else if (bytes_read == 0) {
+                        // Client disconnected
+                        spdlog::info("Client disconnected "); 
+                        close(client_fd);
+                        break;
+                    } else {
+                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                            // No more data available to read (expected with EPOLLET)
+                            break;
+                        } else {
+                            // Read error
+                            perror("read");
+                            close(client_fd);
+                            break;
+                        }
+                    }
+                } 
             }
         }
     }
