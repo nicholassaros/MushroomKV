@@ -1,6 +1,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include <iostream>
 #include <cstring>      
 #include <sys/socket.h>
 #include <netinet/in.h> 
@@ -18,15 +19,16 @@ private:
     int m_ServerFd;
     int m_EpollFd;
     sockaddr_in m_ServerAddress;
-
        
-    void SocketCreate();
+    bool CreateSocket();
 
-    void SocketBind();
+    bool BindSocket();
 
-    void SocketListen();
+    bool Listen();
 
-    void CreateRegisterEpoll();
+    bool CreateAndRegisterEpoll();
+
+    void SendResponse(int client_fd, std::string);
 };
 
 #endif

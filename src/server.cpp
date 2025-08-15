@@ -7,7 +7,8 @@
 #include <iostream>
 #include <map>
 #include <vector>
-#include <cstring>      
+#include <cstring>
+#include <optional>      
 #include <sys/socket.h>
 #include <netinet/in.h> 
 #include <arpa/inet.h>  
@@ -18,36 +19,19 @@
 #define MAX_EVENTS 10
 #define BUFFER_SIZE 1024
 
-int main(){
-    spdlog::info("Welcome to spdlog!");
-    spdlog::warn("This is a warning!");
-    spdlog::error("This is an error with a number: {}", 42);
-
-    SessionManager sessionManager;
-
-    sessionManager.removeSession(111);
-
-    return 1;
-}
 
 Server::Server(int port)
     : m_Port(port), m_ServerFd(-1) {
-
 };
-
 
 void Server::Start() {
     m_ServerAddress.sin_family = AF_INET;           // IPv4
     m_ServerAddress.sin_addr.s_addr = INADDR_ANY;   // Listen on all interfaces
     m_ServerAddress.sin_port = htons(m_Port); 
 
-    SocketCreate();
-
-    SocketBind();
-
-    SocketListen();
-    
-    CreateRegisterEpoll();
+    if (!CreateSocket() || !BindSocket() || !Listen() || !CreateAndRegisterEpoll()){
+        exit(EXIT_FAILURE);
+    }
 
     epoll_event eventsList[MAX_EVENTS];
     
@@ -122,10 +106,12 @@ void Server::Start() {
                     }
                 }
 
+                auto request = RequestParser::parse(data);
 
-                if (!data.empty()) {
-                    // parse data and for get put
-                    
+                if (request == std::nullopt) {
+                    SendResponse(client_fd, "INVALID REQUEST");
+                } else {
+                    SendResponse(client_fd, "VALID GET OR PUT OPERATION"); 
                 }
             }
         }
@@ -133,35 +119,43 @@ void Server::Start() {
 
 }
 
-
-
-void Server::SocketCreate() {
+bool Server::CreateSocket() {
     m_ServerFd = socket(AF_INET, SOCK_STREAM, 0);
     if (m_ServerFd == 0) {
-       exit(EXIT_FAILURE);
+       return false;
     }
+    spdlog::info("Successfully created server socket");
+    return true;
 }
 
-void Server::SocketBind() {
+bool Server::BindSocket() {
+    m_ServerAddress.sin_family = AF_INET;           // IPv4
+    m_ServerAddress.sin_addr.s_addr = INADDR_ANY;   // Listen on all interfaces
+    m_ServerAddress.sin_port = htons(m_Port); 
+
     if (bind(m_ServerFd, (sockaddr*)&m_ServerAddress, sizeof(m_ServerAddress)) < 0) {
         close(m_ServerFd);
-        exit(EXIT_FAILURE);
+        return false;
     }
+    spdlog::info("Listening over socket, {}", m_ServerFd);
+    return true;
 }
 
-void Server::SocketListen() {
+bool Server::Listen() {
     if (listen(m_ServerFd, 100) < 0) {
         close(m_ServerFd);
-        exit(EXIT_FAILURE);
+        return false;
     }
+    spdlog::info("Listening over socket, {}", m_ServerFd);
+    return true;
 }
 
-void Server::CreateRegisterEpoll() {
+bool Server::CreateAndRegisterEpoll() {
    m_EpollFd = epoll_create1(0);
 
     if (m_EpollFd == -1) {
         spdlog::error("Error creating epoll instance");
-        exit(EXIT_FAILURE);
+        return false;
     }
 
     epoll_event event{};
@@ -171,9 +165,16 @@ void Server::CreateRegisterEpoll() {
     // register server socket with epoll isntance
     if (epoll_ctl(m_EpollFd, EPOLL_CTL_ADD, m_ServerFd, &event) == -1) {
         spdlog::error("Error registering server socket with epoll instance");
-        exit(EXIT_FAILURE);
+        return false;
     }
 
-    epoll_event events[MAX_EVENTS];
     spdlog::info("Successfully created and registered Epoll");
+    return true;
+}
+
+void Server::SendResponse(int client_fd, std::string response) {
+    if (send(client_fd, response.c_str(), response.size(), 0) < 0) {
+        spdlog::error("Error sending response to client");
+    }
+    spdlog::error("Successfully send response to client"); 
 }
