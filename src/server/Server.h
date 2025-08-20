@@ -29,6 +29,8 @@ private:
 
     bool CreateAndRegisterEpoll();
 
+    std::string ParseClientRequest(int);
+
     void SendResponse(int client_fd, std::string);
 };
 

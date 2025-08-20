@@ -1,7 +1,6 @@
 #include "Session.h"
 #include "SessionManager.h"
 
-#include <spdlog/spdlog.h>
 #include <mutex>
 
 int SessionManager::addSession(const int fd) {

@@ -13,8 +13,7 @@ WORKDIR /app
 
 # Copy source code and CMake config
 COPY CMakeLists.txt .
-COPY src/server src/server
-COPY src/client src/client
+COPY src/server src
 
 # Build project
 RUN cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build

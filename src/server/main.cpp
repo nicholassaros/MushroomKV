@@ -1,4 +1,6 @@
 #include "Server.h"
+#include <spdlog/spdlog.h>
+
 
 int main() {
 

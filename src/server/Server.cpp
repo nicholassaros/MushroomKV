@@ -3,7 +3,6 @@
 #include "RequestParser.h"
 
 #include <iostream>
-#include <spdlog/spdlog.h>
 #include <iostream>
 #include <map>
 #include <vector>
@@ -79,34 +78,9 @@ void Server::Start() {
                 }
 
             } else {
-                char buffer[BUFFER_SIZE];
-                std::string data;
                 int client_fd = eventsList[i].data.fd;
-
-                while (true) {
-                    int bytes_read = read(client_fd, buffer, sizeof(buffer));
-                    if (bytes_read > 0) {
-
-                        data.append(buffer, bytes_read);
-
-                    } else if (bytes_read == 0) {
-                        // Client disconnected
-                        spdlog::info("Client disconnected"); 
-                        close(client_fd);
-                        break;
-                    } else {
-                        if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                            // No more data available to read (expected with EPOLLET)
-                            break;
-                        } else {
-                            // Read error
-                            spdlog::error("Error reading from client socket"); 
-                            close(client_fd);
-                            break;
-                        }
-                    }
-                }
-
+                std::string clientRequestData = ParseClientRequest(client_fd);
+                
                 auto request = RequestParser::parse(data);
 
                 if (request == std::nullopt) {
@@ -138,7 +112,7 @@ bool Server::BindSocket() {
         close(m_ServerFd);
         return false;
     }
-    spdlog::info("Listening over socket, {}", m_ServerFd);
+    spdlog::info("Bound to socket, {}", m_ServerFd);
     return true;
 }
 
@@ -173,9 +147,42 @@ bool Server::CreateAndRegisterEpoll() {
     return true;
 }
 
+std::string ParseClientRequest(int client_fd) {
+    char buffer[BUFFER_SIZE];
+    std::string data;
+
+    while (true) {
+        int bytes_read = read(client_fd, buffer, sizeof(buffer));
+        if (bytes_read > 0) {
+
+            data.append(buffer, bytes_read);
+
+        } else if (bytes_read == 0) {
+            // Client disconnected
+            spdlog::info("Client disconnected"); 
+            close(client_fd);
+            break;
+        } else {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                // No more data available to read (expected with EPOLLET)
+                break;
+            } else {
+                // Read error
+                spdlog::error("Error reading from client socket"); 
+                close(client_fd);
+                break;
+            }
+        }
+    }
+    return data;
+}
+
+
 void Server::SendResponse(int client_fd, std::string response) {
     if (send(client_fd, response.c_str(), response.size(), 0) < 0) {
         spdlog::error("Error sending response to client");
     }
     spdlog::error("Successfully send response to client"); 
 }
+
+

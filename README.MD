@@ -4,3 +4,9 @@
 - Should listen to stocket for incoming requests with non blocking IO
 - Should parse bytes and send to appropriate datastore API. GET PUT DELETE
 - 
+
+
+
+docker build -t mushroom-kv .
+
+docker run mushroom-kv
