@@ -7,6 +7,7 @@
 #include <netinet/in.h> 
 #include <arpa/inet.h>  
 #include <unistd.h>
+#include <spdlog/spdlog.h>
 
 class Server {
 public:

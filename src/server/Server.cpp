@@ -80,7 +80,8 @@ void Server::Start() {
 
             } else {
                 char buffer[BUFFER_SIZE];
-                std::string data; 
+                std::string data;
+                int client_fd = eventsList[i].data.fd;
 
                 while (true) {
                     int bytes_read = read(client_fd, buffer, sizeof(buffer));

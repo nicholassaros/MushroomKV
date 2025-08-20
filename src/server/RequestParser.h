@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <optional>
+#include <spdlog/spdlog.h>
 
 
 enum class RequestType {

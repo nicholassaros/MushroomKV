@@ -4,6 +4,7 @@
 #include "RequestParser.h"
 
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 struct Response {
     RequestType requestType;

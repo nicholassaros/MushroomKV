@@ -2,6 +2,7 @@
 #define SESSION_H
 
 #include <atomic>
+#include <spdlog/spdlog.h>
 
 class Session {
 public:

@@ -5,7 +5,7 @@
 #include <mutex>
 
 int SessionManager::addSession(const int fd) {
-    pdlog::info("Adding session with FD: " + std::to_string(fd));
+    spdlog::info("Adding session with FD: " + std::to_string(fd));
     std::unique_ptr<Session> sessionPtr = std::make_unique<Session>(fd);
 
     std::lock_guard<std::mutex> lock(m_MapMutex);

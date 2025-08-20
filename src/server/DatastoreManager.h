@@ -5,6 +5,7 @@
 #include "RequestParser.h"
 
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 class DatastoreManager {
 public:

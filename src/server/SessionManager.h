@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <mutex>
 #include <memory>
+#include <spdlog/spdlog.h>
 
 class SessionManager {
 public:
