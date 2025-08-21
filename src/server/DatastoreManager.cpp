@@ -6,14 +6,30 @@ DatastoreManager::DatastoreManager()
 
 };
 
-std::string DatastoreManager::get(std::string key) {
-    return "";
+DatastoreResult ResultBuilder(StatusCode status, std::optional<std::string> data) {
+    switch (status) {
+        case (StatusCode::OK):
+            return DatastoreResult(StatusCode::OK, "SUCCESS", data);
+        case (StatusCode::ERROR):
+            return DatastoreResult(StatusCode::ERROR, "ERROR", data);
+    }
+}
+
+DatastoreResult DatastoreManager::Get(std::string key) {
+    std::optional<std::string> data = m_Datastore.GET(key);
+
+    if (!data) {
+        spdlog::info("Key {} was not found in the datastore", key);
+        return ResultBuilder(StatusCode::ERROR,std::nullopt);
+    }
+    spdlog::info("Key {} found in the datastore", key);
+    return ResultBuilder(StatusCode::OK, data);
 };
 
-bool DatastoreManager::put(std::string key, std::string value) {
+bool DatastoreManager::Put(std::string key, std::string value) {
     return true;
 };
 
-bool DatastoreManager::del(std::string key) {
+bool DatastoreManager::Del(std::string key) {
     return false;
 };

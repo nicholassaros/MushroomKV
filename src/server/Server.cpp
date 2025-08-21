@@ -20,7 +20,9 @@
 
 
 Server::Server(int port)
-    : m_Port(port), m_ServerFd(-1) {
+    :   m_Port(port), 
+        m_ServerFd(-1), 
+        m_RequestManager(RequestManager()) {
 };
 
 void Server::Start() {
@@ -44,50 +46,12 @@ void Server::Start() {
 
         for (int i = 0; i < ready_fds; ++i) {
             if (eventsList[i].data.fd == m_ServerFd) {
-                
-                while (true) {
-                    sockaddr_in client_addr{};
-                    socklen_t client_len = sizeof(client_addr);
-
-                    // Accept connection (non-blocking)
-                    int client_fd = accept(m_ServerFd, (sockaddr*)&client_addr, &client_len);
-                    if (client_fd == -1) {
-                        if (errno == EAGAIN || errno == EWOULDBLOCK) { // break when no more connections
-                            break;
-                        } else {
-                            spdlog::error("Error when accepting new client");
-                            break;
-                        }
-                    }
-
-                    // Set the new client socket to non-blocking
-                    //make_socket_non_blocking(client_fd);
-
-                    // Register client socket with epoll to monitor for reading
-                    epoll_event client_event{};
-                    client_event.data.fd = client_fd;
-                    client_event.events = EPOLLIN | EPOLLET; // Edge-triggered mode
-
-                    if (epoll_ctl(m_EpollFd, EPOLL_CTL_ADD, client_fd, &client_event) == -1) {
-                        spdlog::error("Error registering client with epoll");
-                        close(client_fd);
-                    } else {
-                        // register client with session manager
-                        spdlog::info("Successfully registered new client session");
-                    }
-                }
+                HandleClientConnection();
 
             } else {
                 int client_fd = eventsList[i].data.fd;
-                std::string clientRequestData = ParseClientRequest(client_fd);
-                
-                auto request = RequestParser::parse(data);
-
-                if (request == std::nullopt) {
-                    SendResponse(client_fd, "INVALID REQUEST");
-                } else {
-                    SendResponse(client_fd, "VALID GET OR PUT OPERATION"); 
-                }
+                std::string data = HandleClientRequest(client_fd);
+                m_RequestManager.HandleRequest(data);
             }
         }
     }
@@ -147,7 +111,7 @@ bool Server::CreateAndRegisterEpoll() {
     return true;
 }
 
-std::string ParseClientRequest(int client_fd) {
+std::string HandleClientRequest(int client_fd) {
     char buffer[BUFFER_SIZE];
     std::string data;
 
@@ -175,6 +139,39 @@ std::string ParseClientRequest(int client_fd) {
         }
     }
     return data;
+}
+
+void HandleClientConnection() {
+   while (true) {
+        sockaddr_in client_addr{};
+        socklen_t client_len = sizeof(client_addr);
+
+        int client_fd = accept(m_ServerFd, (sockaddr*)&client_addr, &client_len);
+        if (client_fd == -1) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) { // break when no more connections
+                break;
+            } else {
+                spdlog::error("Error when accepting new client");
+                break;
+            }
+        }
+
+        // MAKE NEW CLIENT SOCKET NOT BLOCKING
+        //make_socket_non_blocking(client_fd);
+
+        // Register client socket with epoll to monitor for reading
+        epoll_event client_event{};
+        client_event.data.fd = client_fd;
+        client_event.events = EPOLLIN | EPOLLET; // Edge-triggered mode
+
+        if (epoll_ctl(m_EpollFd, EPOLL_CTL_ADD, client_fd, &client_event) == -1) {
+            spdlog::error("Error registering client with epoll");
+            close(client_fd);
+        } else {
+            // REGISTER WITH SESSION MANAGER
+            spdlog::info("Successfully registered new client session");
+        }
+    } 
 }
 
 

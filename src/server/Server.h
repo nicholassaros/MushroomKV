@@ -1,6 +1,8 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include "RequestManager.h"
+
 #include <iostream>
 #include <cstring>      
 #include <sys/socket.h>
@@ -20,6 +22,7 @@ private:
     int m_ServerFd;
     int m_EpollFd;
     sockaddr_in m_ServerAddress;
+    RequestManager m_RequestManager;
        
     bool CreateSocket();
 
@@ -29,7 +32,9 @@ private:
 
     bool CreateAndRegisterEpoll();
 
-    std::string ParseClientRequest(int);
+    std::string HandleClientRequest(int);
+
+    void HandleClientConnection(int);
 
     void SendResponse(int client_fd, std::string);
 };

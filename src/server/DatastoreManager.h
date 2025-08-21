@@ -7,6 +7,18 @@
 #include <iostream>
 #include <spdlog/spdlog.h>
 
+enum class StatusCode {
+    OK,
+    ERROR,
+    INVALID
+};
+
+struct DatastoreResult {
+    StatusCode status;
+    std::string message;
+    std::optional<std::string> data;
+};
+
 class DatastoreManager {
 public:
 
@@ -14,13 +26,15 @@ public:
 
     void executeRequest(Request);
 
-    std::string get(std::string key);
+    DatastoreResult Get(std::string key);
 
-    bool put(std::string key, std::string value);
+    DatastoreResult Put(std::string key, std::string value);
 
-    bool del(std::string key);
+    DatastoreResult Del(std::string key);
 private:
     Datastore m_Datastore;
+
+    DatastoreResult BuildResult(StatusCode status, std::optional<std::string>);
 };
 
 #endif
