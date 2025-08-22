@@ -8,7 +8,8 @@
 
 enum class RequestType {
     GET,
-    PUT 
+    PUT,
+    DELETE 
 };
 
 struct Request {

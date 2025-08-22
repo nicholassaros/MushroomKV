@@ -6,6 +6,7 @@
 #include "ResponseBuilder.h"
 
 #include <iostream>
+#include <spdlog/spdlog.h>
 
 
 class Worker {
@@ -15,7 +16,9 @@ public:
     void Run(int, std::string);
 
 private:
-    void SendResponse(int, std::string);
+    void SendResponse(int, DatastoreResult);
+
+    std::string SerializeResult(DatastoreResult);
 
     DatastoreResult ProcessRequest(std::optional<Request>);
 
