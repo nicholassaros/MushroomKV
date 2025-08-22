@@ -1,19 +1,29 @@
 #include "Worker.h"
 
+using json = nlohmann::json;
 
 
 Worker::Worker() {
 
 };
 
-std::string SerializeResult(DatastoreResult result) {
+const char* Worker::SerializeResult(DatastoreResult result) {
+    json jsonResult;
+
+    jsonResult["status"] = result.status;
+    jsonResult["data"] = "";
+    jsonResult["message"] = result.message;
     
+    if (!result.data) {
+        jsonResult["data"] = result.data.value();
+    }
+    return jsonResult.dump().c_str();
 }
 
 void Worker::SendResponse(int client_fd, DatastoreResult result) {
-    std::string serializedResult = SerializeResult(result);
+    const char* serializedResult = SerializeResult(result);
 
-    ssize_t bytes_sent = send(client_fd, message, strlen(message), 0);
+    ssize_t bytes_sent = send(client_fd, serializedResult, strlen(serializedResult), 0);
     if (bytes_sent == -1) {
         spdlog::error("Result was not successfully sent to client {}", client_fd);
         return;

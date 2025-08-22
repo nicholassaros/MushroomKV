@@ -7,6 +7,14 @@
 
 #include <iostream>
 #include <spdlog/spdlog.h>
+#include <nlohmann/json.hpp>
+#include <iostream>
+#include <cstring>      
+#include <sys/socket.h>
+#include <netinet/in.h> 
+#include <arpa/inet.h>  
+#include <unistd.h>
+#include <sstream>
 
 
 class Worker {
@@ -18,7 +26,7 @@ public:
 private:
     void SendResponse(int, DatastoreResult);
 
-    std::string SerializeResult(DatastoreResult);
+    const char* SerializeResult(DatastoreResult);
 
     DatastoreResult ProcessRequest(std::optional<Request>);
 
