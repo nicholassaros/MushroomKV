@@ -22,7 +22,7 @@ void Server::Start() {
         }
 
         for (int i = 0; i < ready_fds; ++i) {
-            int current_fd = m_EventsList[i].data.fd 
+            int current_fd = m_EventsList[i].data.fd;
 
             if (current_fd == m_ServerFd) {
                 spdlog::info("Detected new client connection. Adding request to processing queue"); 
@@ -30,7 +30,7 @@ void Server::Start() {
 
             } else {
                 spdlog::info("Detected new message from client socket {}. Adding request to processing queue", current_fd);
-                m_TaskQueue.push({TaskType::HANDLE_CLIENT_REQUEST, client_fd});
+                m_TaskQueue.Push(Task{TaskType::HANDLE_CLIENT_REQUEST, current_fd});
             }
         }
     }
@@ -93,7 +93,7 @@ bool Server::CreateAndRegisterEpoll() {
 int Server::GetReadyFileDescriptors() {
     spdlog::error("Getting list of FD's ready for processing");
     int ready_fds = epoll_wait(m_EpollFd, m_EventsList, MAX_EVENTS, -1);
-    return ready_fdsl
+    return ready_fds;
 }
 
 std::string Server::HandleClientRequest(int client_fd) {

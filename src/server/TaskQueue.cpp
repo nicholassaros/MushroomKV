@@ -9,7 +9,7 @@ void TaskQueue::Push(Task task){
 
 Task TaskQueue::Pop() {
     std::unique_lock<std::mutex> lock(m_Mutex);
-    m_CV.wait(lock, [this] { !m_Queue.empty(); });
+    m_CV.wait(lock, [this] { return !m_Queue.empty(); });
 
     Task task = std::move(m_Queue.front());
     return task;
