@@ -2,22 +2,12 @@
 #define DATASTORE_MANAGER_H
 
 #include "Datastore.h"
+#include "DatastoreResult.h"
 #include "RequestParser.h"
+
 
 #include <iostream>
 #include <spdlog/spdlog.h>
-
-enum class StatusCode {
-    OK,
-    ERROR,
-    INVALID
-};
-
-struct DatastoreResult {
-    StatusCode status;
-    std::string message;
-    std::optional<std::string> data;
-};
 
 class DatastoreManager {
 public:

@@ -4,6 +4,7 @@
 #include "DatastoreManager.h"
 #include "RequestManager.h"
 #include "ResponseBuilder.h"
+#include "DatastoreResult.h"
 
 #include <iostream>
 #include <spdlog/spdlog.h>

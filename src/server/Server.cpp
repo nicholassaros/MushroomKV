@@ -1,57 +1,36 @@
-#include "SessionManager.h"
 #include "Server.h"
-#include "RequestParser.h"
-
-#include <iostream>
-#include <iostream>
-#include <map>
-#include <vector>
-#include <cstring>
-#include <optional>      
-#include <sys/socket.h>
-#include <netinet/in.h> 
-#include <arpa/inet.h>  
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/epoll.h>
-
-#define MAX_EVENTS 10
-#define BUFFER_SIZE 1024
-
 
 Server::Server(int port)
     :   m_Port(port), 
         m_ServerFd(-1), 
-        m_RequestManager(RequestManager()) {
+        m_RequestManager(RequestManager()),
+        m_TaskQueue(TaskQueue()) {
 };
 
-void Server::Start() {
-    m_ServerAddress.sin_family = AF_INET;           // IPv4
-    m_ServerAddress.sin_addr.s_addr = INADDR_ANY;   // Listen on all interfaces
-    m_ServerAddress.sin_port = htons(m_Port); 
+void Server::Start() { 
 
     if (!CreateSocket() || !BindSocket() || !Listen() || !CreateAndRegisterEpoll()){
         exit(EXIT_FAILURE);
     }
 
-    epoll_event eventsList[MAX_EVENTS];
     
     while(true) {
-
-        int ready_fds = epoll_wait(m_EpollFd, eventsList, MAX_EVENTS, -1);
+        int ready_fds = GetReadyFileDescriptors();
         if (ready_fds == -1) {
             spdlog::error("Error getting list of list of fd's with ready status.");
             continue;
         }
 
         for (int i = 0; i < ready_fds; ++i) {
-            if (eventsList[i].data.fd == m_ServerFd) {
+            int current_fd = m_EventsList[i].data.fd 
+
+            if (current_fd == m_ServerFd) {
+                spdlog::info("Detected new client connection. Adding request to processing queue"); 
                 HandleClientConnection();
 
             } else {
-                int client_fd = eventsList[i].data.fd;
-                std::string data = HandleClientRequest(client_fd);
-                m_RequestManager.HandleRequest(data);
+                spdlog::info("Detected new message from client socket {}. Adding request to processing queue", current_fd);
+                m_TaskQueue.push({TaskType::HANDLE_CLIENT_REQUEST, client_fd});
             }
         }
     }
@@ -90,7 +69,7 @@ bool Server::Listen() {
 }
 
 bool Server::CreateAndRegisterEpoll() {
-   m_EpollFd = epoll_create1(0);
+    m_EpollFd = epoll_create1(0);
 
     if (m_EpollFd == -1) {
         spdlog::error("Error creating epoll instance");
@@ -111,7 +90,13 @@ bool Server::CreateAndRegisterEpoll() {
     return true;
 }
 
-std::string HandleClientRequest(int client_fd) {
+int Server::GetReadyFileDescriptors() {
+    spdlog::error("Getting list of FD's ready for processing");
+    int ready_fds = epoll_wait(m_EpollFd, m_EventsList, MAX_EVENTS, -1);
+    return ready_fdsl
+}
+
+std::string Server::HandleClientRequest(int client_fd) {
     char buffer[BUFFER_SIZE];
     std::string data;
 
@@ -141,7 +126,7 @@ std::string HandleClientRequest(int client_fd) {
     return data;
 }
 
-void HandleClientConnection() {
+void Server::HandleClientConnection() {
    while (true) {
         sockaddr_in client_addr{};
         socklen_t client_len = sizeof(client_addr);

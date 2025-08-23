@@ -33,7 +33,7 @@ void Worker::SendResponse(int client_fd, DatastoreResult result) {
 
 DatastoreResult Worker::ProcessRequest(std::optional<Request> rawRequest) {
     if (!rawRequest){
-        return; // return DatastoreResult with ERROR
+        return DatastoreResult(StatusCode::INVALID, "INVALID REQUEST", "");
     }
 
     Request request = rawRequest.value();

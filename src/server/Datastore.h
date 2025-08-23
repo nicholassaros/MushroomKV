@@ -3,6 +3,7 @@
 
 #include <spdlog/spdlog.h>
 #include <unordered_map>
+#include <optional>
 
 class Datastore {
 public:
