@@ -1,5 +1,4 @@
-#ifndef WORKER_H
-#define WORKER_H
+#pragma once
 
 #include "DatastoreManager.h"
 #include "RequestManager.h"
@@ -41,6 +40,3 @@ private:
     DatastoreManager            m_DatastoreManager;
     ResponseBuilder             m_ResponseBuilder;
 };
-
-
-#endif

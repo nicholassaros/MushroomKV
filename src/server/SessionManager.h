@@ -1,5 +1,4 @@
-#ifndef SESSION_MANAGER_H
-#define SESSION_MANAGER_H
+#pragma once
 
 #include "Session.h"
 
@@ -21,5 +20,3 @@ private:
     std::unordered_map<int, std::unique_ptr<Session>> m_SessionMap;
     std::mutex m_MapMutex;
 };
-
-#endif

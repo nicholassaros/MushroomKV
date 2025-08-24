@@ -1,5 +1,4 @@
-#ifndef DATASTORE_MANAGER_H
-#define DATASTORE_MANAGER_H
+#pragma once
 
 #include "Datastore.h"
 #include "DatastoreResult.h"
@@ -26,5 +25,3 @@ private:
 
     DatastoreResult BuildResult(StatusCode status, std::optional<std::string>);
 };
-
-#endif

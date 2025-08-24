@@ -1,5 +1,4 @@
-#ifndef DATASTORE_RESULT
-#define DATASTORE_RESULT
+#pragma once
 
 #include <iostream>
 #include <optional>
@@ -11,13 +10,12 @@ enum class StatusCode {
 };
 
 struct DatastoreResult {
-    StatusCode status;
-    std::string message;
-    std::optional<std::string> data;
+    StatusCode                  status;
+    std::string                 message;
+    std::optional<std::string>  data;
 
     DatastoreResult(StatusCode status, std::string message, std::optional<std::string> data)
         : status(status), message(message), data(data) {
             
         }
 };
-#endif

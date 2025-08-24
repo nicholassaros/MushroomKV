@@ -1,5 +1,4 @@
-#ifndef TASK_QUEUE
-#define TASL_QUEUE
+#pragma once
 
 #include <queue>
 #include <mutex>
@@ -26,5 +25,3 @@ private:
     std::mutex  m_Mutex;
     std::condition_variable m_CV;
 };
-
-#endif

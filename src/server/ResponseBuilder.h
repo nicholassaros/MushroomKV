@@ -1,5 +1,4 @@
-#define RESPONSE_BUILDER_H
-#ifdef RESPONSE_BUILDER_H
+#pragma once
 
 #include "RequestParser.h"
 
@@ -17,5 +16,3 @@ class ResponseBuilder {
 public:
     static Response build(RequestType, std::string);
 };
-
-#endif

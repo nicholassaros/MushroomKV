@@ -1,5 +1,4 @@
-#ifndef SESSION_H
-#define SESSION_H
+#pragma once
 
 #include <atomic>
 #include <spdlog/spdlog.h>
@@ -24,5 +23,3 @@ private:
     int m_SessionId;
     std::atomic<bool> m_alive{true};
 };
-
-#endif

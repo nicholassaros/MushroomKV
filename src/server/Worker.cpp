@@ -20,7 +20,7 @@ void Worker::operator()(std::stop_token st) {
         std::optional<Request> request = m_RequestManager.HandleRequest(rawData);
 
         DatastoreResult result = ProcessRequest(request);
-        spdlog::info("Worker {} returned result with status {}", m_Id, result.status); 
+        spdlog::info("Worker {} returned result with status {}", m_Id, result.message); 
 
         SendResponse(task.client_fd, result);
         spdlog::info("Worker {} sent response to client {}", m_Id, task.client_fd); 
@@ -99,5 +99,6 @@ DatastoreResult Worker::ProcessRequest(std::optional<Request> rawRequest) {
         case RequestType::DELETE:
             return m_DatastoreManager.Del(request.key);
     }
+    return DatastoreResult(StatusCode::INVALID, "INVALID REQUEST", "");
 }
 

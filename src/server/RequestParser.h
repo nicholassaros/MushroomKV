@@ -1,5 +1,4 @@
-#ifndef REQUEST_PARSER_H
-#define REQUEST_PARSER_H
+#pragma once
 
 #include <iostream>
 #include <optional>
@@ -27,5 +26,3 @@ class RequestParser {
 public:
     static std::optional<Request> parse(const std::string& input);
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef WORKER_MANAGER_H
-#define WORKER_MANAGER_H
+#pragma once
 
 #include "TaskQueue.h"
 #include "Worker.h"
@@ -21,5 +20,3 @@ private:
     std::vector<Worker>         m_Workers;
     std::vector<std::jthread>   m_Threads;
 };
-
-#endif

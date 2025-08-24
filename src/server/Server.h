@@ -1,5 +1,4 @@
-#ifndef SERVER_H
-#define SERVER_H
+#pragma once
 
 #include "RequestManager.h"
 #include "RequestParser.h"
@@ -54,5 +53,3 @@ private:
 
     void SendResponse(int client_fd, std::string);
 };
-
-#endif

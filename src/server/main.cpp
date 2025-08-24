@@ -8,14 +8,11 @@
 
 int main() {
 
-    std::shared_ptr<TaskQueue> taskQueue = std::make_shared<TaskQueue()>
+    std::shared_ptr<TaskQueue> taskQueue = std::make_shared<TaskQueue>();
 
-    WorkerManager workerManager = 
-
+    WorkerManager workerManager = WorkerManager(5, taskQueue);
 
     Server myServer = Server(8000, taskQueue);
-
-
 
     myServer.Start();
     return 0;

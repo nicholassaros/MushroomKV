@@ -1,5 +1,4 @@
-#ifndef DATASTORE_H
-#define DATASTORE_H
+#pragma once
 
 #include <spdlog/spdlog.h>
 #include <unordered_map>
@@ -18,5 +17,3 @@ public:
 private:
     std::unordered_map<std::string, std::string> m_DatastoreMap;
 };
-
-#endif

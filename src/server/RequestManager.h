@@ -1,5 +1,4 @@
-#ifndef REQUEST_MANAGER
-#define REQUEST_MANAGER
+#pragma once
 
 #include "DatastoreManager.h"
 
@@ -14,5 +13,3 @@ public:
 
 private:
 };
-
-#endif
