@@ -1,10 +1,10 @@
 #include "Server.h"
 
-Server::Server(int port)
+Server::Server(int port, std::shared_ptr<TaskQueue> taskQueue)
     :   m_Port(port), 
-        m_ServerFd(-1), 
-        m_RequestManager(RequestManager()),
-        m_TaskQueue(TaskQueue()) {
+        m_ServerFd(-1),
+        m_TaskQueue(taskQueue),
+        m_RequestManager(RequestManager()){
 };
 
 void Server::Start() { 
@@ -30,7 +30,7 @@ void Server::Start() {
 
             } else {
                 spdlog::info("Detected new message from client socket {}. Adding request to processing queue", current_fd);
-                m_TaskQueue.Push(Task{TaskType::HANDLE_CLIENT_REQUEST, current_fd});
+                m_TaskQueue->Push(Task{TaskType::HANDLE_CLIENT_REQUEST, current_fd});
             }
         }
     }
@@ -94,36 +94,6 @@ int Server::GetReadyFileDescriptors() {
     spdlog::error("Getting list of FD's ready for processing");
     int ready_fds = epoll_wait(m_EpollFd, m_EventsList, MAX_EVENTS, -1);
     return ready_fds;
-}
-
-std::string Server::HandleClientRequest(int client_fd) {
-    char buffer[BUFFER_SIZE];
-    std::string data;
-
-    while (true) {
-        int bytes_read = read(client_fd, buffer, sizeof(buffer));
-        if (bytes_read > 0) {
-
-            data.append(buffer, bytes_read);
-
-        } else if (bytes_read == 0) {
-            // Client disconnected
-            spdlog::info("Client disconnected"); 
-            close(client_fd);
-            break;
-        } else {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                // No more data available to read (expected with EPOLLET)
-                break;
-            } else {
-                // Read error
-                spdlog::error("Error reading from client socket"); 
-                close(client_fd);
-                break;
-            }
-        }
-    }
-    return data;
 }
 
 void Server::HandleClientConnection() {

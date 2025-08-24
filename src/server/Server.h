@@ -25,18 +25,18 @@
 
 class Server {
 public:
-    Server(int);
+    Server(int, std::shared_ptr<TaskQueue>);
 
     void Start();
 
 private:
-    int             m_Port;
-    int             m_ServerFd;
-    int             m_EpollFd;
-    sockaddr_in     m_ServerAddress;
-    RequestManager  m_RequestManager;
-    TaskQueue       m_TaskQueue;
-    epoll_event     m_EventsList[MAX_EVENTS];
+    int                         m_Port;
+    int                         m_ServerFd;
+    int                         m_EpollFd;
+    std::shared_ptr<TaskQueue>  m_TaskQueue;
+    sockaddr_in                 m_ServerAddress;
+    RequestManager              m_RequestManager;
+    epoll_event                 m_EventsList[MAX_EVENTS];
        
     bool CreateSocket();
 

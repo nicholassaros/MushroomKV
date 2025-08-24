@@ -3,9 +3,55 @@
 using json = nlohmann::json;
 
 
-Worker::Worker() {
-
+Worker::Worker(int id, std::shared_ptr<TaskQueue> taskQueue)
+    :   m_Id(id),
+        m_TaskQueue(taskQueue) {
 };
+
+void Worker::operator()(std::stop_token st) {
+    while (!st.stop_requested()) {
+
+        Task task = m_TaskQueue->Pop();
+
+        std::string rawData = ReadClientData(task.client_fd);
+
+        std::optional<Request> request = m_RequestManager.HandleRequest(rawData);
+
+        DatastoreResult result = ProcessRequest(request);
+
+        SendResponse(task.client_fd, result);
+    }
+}
+
+std::string Worker::ReadClientData(int client_fd) {
+    char buffer[1024];
+    std::string data;
+
+    while (true) {
+        int bytes_read = read(client_fd, buffer, sizeof(buffer));
+        if (bytes_read > 0) {
+
+            data.append(buffer, bytes_read);
+
+        } else if (bytes_read == 0) {
+            // Client disconnected
+            spdlog::info("Client disconnected"); 
+            close(client_fd);
+            break;
+        } else {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                // No more data available to read (expected with EPOLLET)
+                break;
+            } else {
+                // Read error
+                spdlog::error("Error reading from client socket"); 
+                close(client_fd);
+                break;
+            }
+        }
+    }
+    return data;
+}
 
 const char* Worker::SerializeResult(DatastoreResult result) {
     json jsonResult;
@@ -49,16 +95,4 @@ DatastoreResult Worker::ProcessRequest(std::optional<Request> rawRequest) {
             return m_DatastoreManager.Del(request.key);
     }
 }
-
-void Worker::Run(int client_fd, std::string data) {
-
-    // parse data into request
-    std::optional<Request> rawRequest = m_RequestManager.HandleRequest(data);
-
-    DatastoreResult result = ProcessRequest(rawRequest);
-
-    SendResponse(client_fd, result);
-};
-
-
 
