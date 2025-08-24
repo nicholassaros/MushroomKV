@@ -10,16 +10,20 @@ Worker::Worker(int id, std::shared_ptr<TaskQueue> taskQueue)
 
 void Worker::operator()(std::stop_token st) {
     while (!st.stop_requested()) {
+        spdlog::info("Worker {} waiting on new task");
 
         Task task = m_TaskQueue->Pop();
+        spdlog::info("Worker {} processing new task", m_Id); 
 
         std::string rawData = ReadClientData(task.client_fd);
 
         std::optional<Request> request = m_RequestManager.HandleRequest(rawData);
 
         DatastoreResult result = ProcessRequest(request);
+        spdlog::info("Worker {} returned result with status {}", m_Id, result.status); 
 
         SendResponse(task.client_fd, result);
+        spdlog::info("Worker {} sent response to client {}", m_Id, task.client_fd); 
     }
 }
 
@@ -27,6 +31,7 @@ std::string Worker::ReadClientData(int client_fd) {
     char buffer[1024];
     std::string data;
 
+    spdlog::info("Worker {} reading from client {}", m_Id, client_fd); 
     while (true) {
         int bytes_read = read(client_fd, buffer, sizeof(buffer));
         if (bytes_read > 0) {
