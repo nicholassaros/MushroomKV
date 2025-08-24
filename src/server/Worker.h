@@ -31,7 +31,7 @@ private:
 
     std::string ReadClientData(int, int);
 
-    const char* SerializeResult(DatastoreResult);
+    std::string SerializeResult(DatastoreResult);
 
     DatastoreResult ProcessRequest(std::optional<Request>);
 

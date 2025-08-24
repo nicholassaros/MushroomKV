@@ -20,7 +20,7 @@ void Worker::operator()(std::stop_token st) {
         std::optional<Request> request = m_RequestManager.HandleRequest(rawData);
 
         DatastoreResult result = ProcessRequest(request);
-        spdlog::info("Worker {} returned result with status {}", m_Id, result.message); 
+        spdlog::info("Worker {} returned result with status {}", m_Id, result.message);
 
         SendResponse(task.client_fd, result);
         spdlog::info("Worker {} sent response to client {}", m_Id, task.client_fd); 
@@ -60,28 +60,28 @@ std::string Worker::ReadClientData(int client_fd, int epoll_fd) {
     return data;
 }
 
-const char* Worker::SerializeResult(DatastoreResult result) {
+std::string Worker::SerializeResult(DatastoreResult result) {
     json jsonResult;
 
     jsonResult["status"] = result.status;
     jsonResult["data"] = "";
     jsonResult["message"] = result.message;
     
-    if (!result.data) {
+    if (result.data) {
         jsonResult["data"] = result.data.value();
     }
-    return jsonResult.dump().c_str();
+    return jsonResult.dump();
 }
 
 void Worker::SendResponse(int client_fd, DatastoreResult result) {
-    const char* serializedResult = SerializeResult(result);
+    std::string serializedResult = SerializeResult(result);
 
-    ssize_t bytes_sent = send(client_fd, serializedResult, strlen(serializedResult), 0);
+    ssize_t bytes_sent = send(client_fd, serializedResult.c_str(), serializedResult.size(), 0);
     if (bytes_sent == -1) {
         spdlog::error("Result was not successfully sent to client {}", client_fd);
         return;
     }
-    spdlog::info("Successfully sent result to client {}", client_fd);
+    spdlog::info("Successfully sent result {} to client {}", serializedResult, client_fd);
 }
 
 DatastoreResult Worker::ProcessRequest(std::optional<Request> rawRequest) {

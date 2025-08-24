@@ -21,7 +21,7 @@ DatastoreResult DatastoreManager::Get(std::string key) {
 
     if (!data) {
         spdlog::info("Key {} was not found in the datastore", key);
-        return BuildResult(StatusCode::ERROR,data);
+        return BuildResult(StatusCode::ERROR, data);
     }
     spdlog::info("Key {} found in the datastore", key);
     return BuildResult(StatusCode::OK, data);

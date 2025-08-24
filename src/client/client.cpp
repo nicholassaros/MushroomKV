@@ -32,7 +32,7 @@ int main() {
     std::cout << "Connected to server\n";
 
     // 4. Send request
-    const char* request = "Hello from client";
+    const char* request = "GET mushroom";
     send(sock, request, strlen(request), 0);
 
     // 5. Receive response
