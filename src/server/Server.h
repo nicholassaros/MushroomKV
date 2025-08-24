@@ -51,5 +51,7 @@ private:
 
     void HandleClientConnection();
 
-    void SendResponse(int client_fd, std::string);
+    void SendResponse(int, std::string);
+
+    void MakeSocketNonBlocking(int);
 };

@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <stop_token>
 #include <thread>
+#include <sys/epoll.h>
 
 
 class Worker {
@@ -28,7 +29,7 @@ public:
 private:
     void SendResponse(int, DatastoreResult);
 
-    std::string ReadClientData(int);
+    std::string ReadClientData(int, int);
 
     const char* SerializeResult(DatastoreResult);
 

@@ -10,12 +10,12 @@ Worker::Worker(int id, std::shared_ptr<TaskQueue> taskQueue)
 
 void Worker::operator()(std::stop_token st) {
     while (!st.stop_requested()) {
-        spdlog::info("Worker {} waiting on new task");
+        spdlog::info("Worker {} waiting on new task", m_Id);
 
         Task task = m_TaskQueue->Pop();
         spdlog::info("Worker {} processing new task", m_Id); 
 
-        std::string rawData = ReadClientData(task.client_fd);
+        std::string rawData = ReadClientData(task.client_fd, task.epoll_fd);
 
         std::optional<Request> request = m_RequestManager.HandleRequest(rawData);
 
@@ -27,7 +27,7 @@ void Worker::operator()(std::stop_token st) {
     }
 }
 
-std::string Worker::ReadClientData(int client_fd) {
+std::string Worker::ReadClientData(int client_fd, int epoll_fd) {
     char buffer[1024];
     std::string data;
 
@@ -40,7 +40,8 @@ std::string Worker::ReadClientData(int client_fd) {
 
         } else if (bytes_read == 0) {
             // Client disconnected
-            spdlog::info("Client disconnected"); 
+            spdlog::info("Client disconnected");
+            epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, nullptr);
             close(client_fd);
             break;
         } else {
@@ -50,6 +51,7 @@ std::string Worker::ReadClientData(int client_fd) {
             } else {
                 // Read error
                 spdlog::error("Error reading from client socket"); 
+                epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, nullptr);
                 close(client_fd);
                 break;
             }

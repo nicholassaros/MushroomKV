@@ -12,5 +12,6 @@ Task TaskQueue::Pop() {
     m_CV.wait(lock, [this] { return !m_Queue.empty(); });
 
     Task task = std::move(m_Queue.front());
+    m_Queue.pop();
     return task;
 };

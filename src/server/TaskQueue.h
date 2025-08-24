@@ -11,6 +11,7 @@ enum TaskType {
 struct Task {
     TaskType    taskType;
     int         client_fd;
+    int         epoll_fd;
 };
 
 

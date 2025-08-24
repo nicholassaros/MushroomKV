@@ -30,7 +30,7 @@ void Server::Start() {
 
             } else {
                 spdlog::info("Detected new message from client socket {}. Adding request to processing queue", current_fd);
-                m_TaskQueue->Push(Task{TaskType::HANDLE_CLIENT_REQUEST, current_fd});
+                m_TaskQueue->Push(Task{TaskType::HANDLE_CLIENT_REQUEST, current_fd, m_EpollFd});
             }
         }
     }
@@ -42,6 +42,8 @@ bool Server::CreateSocket() {
     if (m_ServerFd == 0) {
        return false;
     }
+
+    MakeSocketNonBlocking(m_ServerFd);
     spdlog::info("Successfully created server socket");
     return true;
 }
@@ -112,7 +114,7 @@ void Server::HandleClientConnection() {
         }
 
         // MAKE NEW CLIENT SOCKET NOT BLOCKING
-        //make_socket_non_blocking(client_fd);
+        MakeSocketNonBlocking(client_fd);
 
         // Register client socket with epoll to monitor for reading
         epoll_event client_event{};
@@ -136,5 +138,17 @@ void Server::SendResponse(int client_fd, std::string response) {
     }
     spdlog::error("Successfully send response to client"); 
 }
+
+void Server::MakeSocketNonBlocking(int fd) {
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags == -1) {
+        spdlog::error("Failed to get socket flags");
+        return;
+    }
+
+    if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        spdlog::error("Failed to set socket non-blocking");
+    }
+};
 
 
